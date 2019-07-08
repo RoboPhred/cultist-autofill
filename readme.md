@@ -85,3 +85,7 @@ This folder should include:
 ### Compiling
 
 This project uses the dotnet cli, provided by the .Net SDK.  To compile, simply use `dotnet build` on the project's root directory.
+
+## Inspiration
+
+This mod is inspired by two [ililim mods](https://github.com/ililim/mods-cultist-simulator), specifically ShiftPopulate and Situation Automation.  As these mods are no longer mantained, this one may yet grow to cover their feature set.
