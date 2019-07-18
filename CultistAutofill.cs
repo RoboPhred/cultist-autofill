@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace CultistAutofill
 {
-    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "0.0.1")]
+    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "0.0.2")]
     public class CultistAutofillMod : BepInEx.BaseUnityPlugin
     {
 
