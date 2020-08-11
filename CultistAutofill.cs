@@ -143,7 +143,7 @@ namespace CultistAutofill
         {
             var xDist = a.x - b.x;
             var yDist = a.y - b.y;
-            return Math.Abs(xDist * xDist + yDist * yDist);
+            return (float)Math.Sqrt(xDist * xDist + yDist * yDist);
         }
 
         RecipeSlot ValidRecipeSlotOrNull(RecipeSlot slot)
