@@ -11,10 +11,6 @@ their closeness to the situation/verb block on the table. Closer cards will be p
 
 ## Installation
 
-This mod uses BepInEx 5.0. You must install BepInEx to use this mod.
-
-## Installation
-
 This mod uses BepInEx 5.2.
 
 - Install [version 5.2](https://github.com/BepInEx/BepInEx/releases/tag/v5.2) or later by extracting the zip file into your Cultist Simulator install location
