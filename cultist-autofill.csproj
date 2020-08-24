@@ -24,5 +24,8 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>.\externals\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="Noon.Core.Enums">
+      <HintPath>.\externals\Noon.Core.Enums.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

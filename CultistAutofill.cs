@@ -9,23 +9,20 @@ using UnityEngine;
 
 namespace CultistAutofill
 {
-    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "0.0.3")]
+    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "1.0.0")]
     public class CultistAutofillMod : BepInEx.BaseUnityPlugin
     {
-
         private TabletopTokenContainer TabletopTokenContainer
         {
             get
             {
+                var tabletopManager = (TabletopManager)Registry.Get<ITabletopManager>();
+                if (tabletopManager == null)
                 {
-                    var tabletopManager = (TabletopManager)Registry.Retrieve<ITabletopManager>();
-                    if (tabletopManager == null)
-                    {
-                        this.Logger.LogError("Could not fetch TabletopManager");
-                    }
-
-                    return tabletopManager._tabletop;
+                    this.Logger.LogError("Could not fetch TabletopManager");
                 }
+
+                return tabletopManager._tabletop;
             }
         }
 
@@ -157,7 +154,7 @@ namespace CultistAutofill
 
         SituationController GetOpenSituation()
         {
-            var situation = Registry.Retrieve<SituationsCatalogue>().GetOpenSituation();
+            var situation = Registry.Get<SituationsCatalogue>().GetOpenSituation();
             var token = situation.situationToken as SituationToken;
             if (token.Defunct || token.IsBeingAnimated)
             {

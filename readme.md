@@ -4,6 +4,10 @@ This is a mod for Cultist Simulator that adds a hotkey to automatically fill emp
 
 Download the latest release [here](https://github.com/RoboPhred/cultist-autofill/releases/).
 
+# Compatibility
+
+Version 1.0.0 of this mod is compatible with Cultist Simulator version `2020.8.a.3`.
+
 ## Usage
 
 With a situation window open, press `R`. This will cause the mod to look at each empty slot, move in any matching cards it can find. Cards will be searched based on
@@ -80,6 +84,7 @@ This folder should include:
 - UnityEngine.InputLegacyModule.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
 - UnityEngine.UI.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
 - UnityEngine.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
+- Noon.Core.Enums - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
 
 ### Compiling
 
