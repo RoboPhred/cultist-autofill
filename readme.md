@@ -13,7 +13,7 @@ their closeness to the situation/verb block on the table. Closer cards will be p
 
 This mod uses BepInEx 5.2.
 
-- Install BepInEx x64 [version 5.2](https://github.com/BepInEx/BepInEx/releases/tag/v5.2) or later by extracting the zip file into your Cultist Simulator install location
+- Install BepInEx x86 [version 5.2](https://github.com/BepInEx/BepInEx/releases/tag/v5.2) or later by extracting the zip file into your Cultist Simulator install location
 - Run the game once, to let BepInEx create its folder structure.
 - Place the cultist-autofill.dll file from the download into `Cultist Simulator/BepInEx/Plugins`
 
