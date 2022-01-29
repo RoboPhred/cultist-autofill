@@ -4,19 +4,18 @@ using System.Linq;
 using Assets.Core.Entities;
 using Assets.CS.TabletopUI;
 using Assets.TabletopUi;
-using TabletopUi.Scripts.Interfaces;
 using UnityEngine;
 
 namespace CultistAutofill
 {
-    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "1.0.0")]
+    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "1.0.1")]
     public class CultistAutofillMod : BepInEx.BaseUnityPlugin
     {
         private TabletopTokenContainer TabletopTokenContainer
         {
             get
             {
-                var tabletopManager = (TabletopManager)Registry.Get<ITabletopManager>();
+                var tabletopManager = Registry.Get<TabletopManager>();
                 if (tabletopManager == null)
                 {
                     this.Logger.LogError("Could not fetch TabletopManager");
