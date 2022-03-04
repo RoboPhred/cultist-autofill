@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Core.Entities;
-using Assets.CS.TabletopUI;
-using Assets.TabletopUi;
+using SecretHistories.Entities;
+using SecretHistories.Enums;
+using SecretHistories.Spheres;
+using SecretHistories.UI;
 using UnityEngine;
 
 namespace CultistAutofill
@@ -11,20 +12,6 @@ namespace CultistAutofill
     [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "1.0.1")]
     public class CultistAutofillMod : BepInEx.BaseUnityPlugin
     {
-        private TabletopTokenContainer TabletopTokenContainer
-        {
-            get
-            {
-                var tabletopManager = Registry.Get<TabletopManager>();
-                if (tabletopManager == null)
-                {
-                    this.Logger.LogError("Could not fetch TabletopManager");
-                }
-
-                return tabletopManager._tabletop;
-            }
-        }
-
         void Start()
         {
             this.Logger.LogInfo("CultistAutofill initialized.");
@@ -40,10 +27,10 @@ namespace CultistAutofill
 
         void AutofillSituation()
         {
-            if (TabletopManager.IsInMansus())
-            {
-                return;
-            }
+            // if (TabletopManager.IsInMansus())
+            // {
+            //     return;
+            // }
 
             var situation = this.GetOpenSituation();
             if (situation == null)
@@ -51,23 +38,13 @@ namespace CultistAutofill
                 return;
             }
 
-            // situationToken is typed ISituationAnchor, but its core type is SituationToken which is a DraggableToken
-            var situationDraggable = situation.situationToken as DraggableToken;
-            var candidates = this.GetElementsOrderedByDistance(situationDraggable.RectTransform.anchoredPosition).ToArray();
+            var candidates = this.GetElementsOrderedByDistance(situation.GetRectTransform().anchoredPosition).ToArray();
 
-            var window = situation.situationWindow;
-            switch (situation.SituationClock.State)
-            {
-                case SituationState.Unstarted:
-                    this.TryFillSlots(() => window.GetStartingSlots(), candidates);
-                    break;
-                case SituationState.Ongoing:
-                    this.TryFillSlots(() => window.GetOngoingSlots(), candidates);
-                    break;
-            }
+            var activeSpheres = situation.GetSpheresActiveForCurrentState();
+            this.TryFillSpheres(() => activeSpheres, candidates);
         }
 
-        void TryFillSlots(Func<IList<RecipeSlot>> slotsResolver, IList<ElementStackToken> candidates)
+        void TryFillSpheres(Func<IList<Sphere>> slotsResolver, IList<Token> candidates)
         {
             // We handle the first slot independently, as chooing a first slot will
             //  usually determine what other slots are available.
@@ -77,7 +54,7 @@ namespace CultistAutofill
                 return;
             }
 
-            if (!this.TrySatisfySlot(primarySlot, candidates))
+            if (!this.TrySatisfySphere(primarySlot, candidates))
             {
                 return;
             }
@@ -88,79 +65,48 @@ namespace CultistAutofill
             var slots = slotsResolver();
             foreach (var slot in slots.Skip(1))
             {
-                this.TrySatisfySlot(slot, candidates);
+                this.TrySatisfySphere(slot, candidates);
             }
         }
 
-        bool TrySatisfySlot(RecipeSlot slot, IEnumerable<ElementStackToken> candidates)
+        bool TrySatisfySphere(Sphere sphere, IEnumerable<Token> candidates)
         {
-            if (slot.GetElementStackInSlot() != null)
+            if (sphere.GetElementStacks().Count > 0)
             {
-                // Already something in the slot.
+                // Already something in the sphere.
                 return true;
             }
 
-            var candidate = candidates.FirstOrDefault(x => slot.GetSlotMatchForStack(x).MatchType == SlotMatchForAspectsType.Okay);
-            if (candidate == null)
+            foreach (var token in candidates)
             {
-                return false;
+                if (sphere.TryAcceptToken(token, new Context(Context.ActionSource.PlayerDrag)))
+                {
+                    return true;
+                }
             }
 
-            this.PopulateSlot(slot, candidate);
-            return true;
+            return false;
         }
 
-        void PopulateSlot(IRecipeSlot slot, ElementStackToken stack)
+        IEnumerable<Token> GetElementsOrderedByDistance(Vector2 fromPoint)
         {
-            stack.lastTablePos = new Vector2?(stack.RectTransform.anchoredPosition);
-            if (stack.Quantity != 1)
-            {
-                var newStack = stack.SplitAllButNCardsToNewStack(stack.Quantity - 1, new Context(Context.ActionSource.PlayerDrag));
-                slot.AcceptStack(newStack, new Context(Context.ActionSource.PlayerDrag));
-            }
-            else
-            {
-                slot.AcceptStack(stack, new Context(Context.ActionSource.PlayerDrag));
-            }
-        }
-
-        IEnumerable<ElementStackToken> GetElementsOrderedByDistance(Vector2 fromPoint)
-        {
-            var elements =
-                from token in this.TabletopTokenContainer.GetTokens()
-                let stack = token as ElementStackToken
-                where stack != null
-                orderby CalcDistance(stack.RectTransform.anchoredPosition, fromPoint)
-                select stack;
-            return elements;
+            return from sphere in Watchman.Get<HornedAxe>().GetSpheres()
+                   where sphere.SphereCategory == SphereCategory.World
+                   from stack in sphere.GetElementStacks()
+                   orderby CalcDistance(stack.GetRectTransform().anchoredPosition, fromPoint)
+                   select stack.Token;
         }
 
         float CalcDistance(Vector2 a, Vector2 b)
         {
             var xDist = a.x - b.x;
             var yDist = a.y - b.y;
-            return (float)Math.Sqrt(xDist * xDist + yDist * yDist);
+            return (float)Math.Sqrt((xDist * xDist) + (yDist * yDist));
         }
 
-        RecipeSlot ValidRecipeSlotOrNull(RecipeSlot slot)
+        Situation GetOpenSituation()
         {
-            if (slot.Defunct || slot.IsGreedy || slot.IsBeingAnimated)
-            {
-                return null;
-            }
-            return slot;
-        }
-
-        SituationController GetOpenSituation()
-        {
-            var situation = Registry.Get<SituationsCatalogue>().GetOpenSituation();
-            var token = situation.situationToken as SituationToken;
-            if (token.Defunct || token.IsBeingAnimated)
-            {
-                return null;
-            }
-
-            return situation;
+            return Watchman.Get<HornedAxe>().GetRegisteredSituations().Find(x => x.IsOpen);
         }
     }
 }

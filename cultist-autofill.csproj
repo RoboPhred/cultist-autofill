@@ -9,6 +9,12 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>.\externals\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="SecretHistories.Main">
+      <HintPath>.\externals\SecretHistories.Main.dll</HintPath>
+    </Reference>
+    <Reference Include="SecretHistories.Enums">
+      <HintPath>.\externals\SecretHistories.Enums.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>.\externals\UnityEngine.UI.dll</HintPath>
     </Reference>
@@ -26,9 +32,6 @@
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>.\externals\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="Noon.Core.Enums">
-      <HintPath>.\externals\Noon.Core.Enums.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
