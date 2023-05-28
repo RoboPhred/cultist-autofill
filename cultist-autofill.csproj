@@ -15,11 +15,8 @@
     <Reference Include="SecretHistories.Enums">
       <HintPath>.\externals\SecretHistories.Enums.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>.\externals\UnityEngine.UI.dll</HintPath>
-    </Reference>
-    <Reference Include="BepInEx">
-      <HintPath>.\externals\BepInEx.dll</HintPath>
+    <Reference Include="SecretHistories.Interfaces">
+      <HintPath>.\externals\SecretHistories.Interfaces.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>.\externals\UnityEngine.dll</HintPath>
@@ -27,11 +24,8 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>.\externals\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="Unity.InputSystem">
-      <HintPath>.\externals\UnityEngine.InputModule.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>.\externals\UnityEngine.UI.dll</HintPath>
+    <Reference Include="Engine.InputSystem">
+      <HintPath>.\externals\Unity.InputSystem.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
