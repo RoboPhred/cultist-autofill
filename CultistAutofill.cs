@@ -6,6 +6,7 @@ using SecretHistories.Enums;
 using SecretHistories.Spheres;
 using SecretHistories.UI;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace CultistAutofill
 {
@@ -19,7 +20,7 @@ namespace CultistAutofill
 
         void Update()
         {
-            if (Input.GetKeyDown(KeyCode.R))
+            if (Keyboard.current.rKey.wasPressedThisFrame)
             {
                 this.AutofillSituation();
             }
@@ -38,7 +39,7 @@ namespace CultistAutofill
                 return;
             }
 
-            var candidates = this.GetElementsOrderedByDistance(situation.GetRectTransform().anchoredPosition).ToArray();
+            var candidates = this.GetTokensOrderedByDistance(situation.GetRectTransform().anchoredPosition).ToArray();
 
             var activeSpheres = situation.GetSpheresActiveForCurrentState();
             this.TryFillSpheres(() => activeSpheres, candidates);
@@ -79,8 +80,12 @@ namespace CultistAutofill
 
             foreach (var token in candidates)
             {
-                if (sphere.TryAcceptToken(token, new Context(Context.ActionSource.PlayerDrag)))
+                // TryAcceptToken handles UI concerns like messages and sound effects, so we need to check manually
+                // to avoid spamming sound effects.
+                if (sphere.GetMatchForTokenPayload(token.Payload).MatchType == SlotMatchForAspectsType.Okay)
                 {
+                    // We sitll need to TryAcceptToken, as that contains the logic to split the stack into one card.
+                    sphere.TryAcceptToken(token, new Context(Context.ActionSource.PlayerDrag));
                     return true;
                 }
             }
@@ -88,7 +93,7 @@ namespace CultistAutofill
             return false;
         }
 
-        IEnumerable<Token> GetElementsOrderedByDistance(Vector2 fromPoint)
+        IEnumerable<Token> GetTokensOrderedByDistance(Vector2 fromPoint)
         {
             return from sphere in Watchman.Get<HornedAxe>().GetSpheres()
                    where sphere.SphereCategory == SphereCategory.World

@@ -27,8 +27,8 @@
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>.\externals\UnityEngine.CoreModule.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>.\externals\UnityEngine.InputLegacyModule.dll</HintPath>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>.\externals\UnityEngine.InputModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>.\externals\UnityEngine.UI.dll</HintPath>

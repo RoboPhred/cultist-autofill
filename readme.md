@@ -6,7 +6,7 @@ Download the latest release [here](https://github.com/RoboPhred/cultist-autofill
 
 # Compatibility
 
-Version 1.0.0 of this mod is compatible with Cultist Simulator version `2020.8.a.3`.
+Version 1.0.0 of this mod is compatible with Cultist Simulator version `2022.3.b.1`.
 
 ## Usage
 
@@ -76,15 +76,7 @@ try to log errors when it cannot do it's job properly. Create a github issue wit
 ### Dependencies
 
 Project dependencies should be placed in a folder called `externals` in the project's root directory.
-This folder should include:
-
-- BepInEx.dll - Copied from the BepInEx 5.0 installation under `BepInEx/core`
-- Assembly-CSharp.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.CoreModule.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.InputLegacyModule.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.UI.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- Noon.Core.Enums - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
+This folder should include all dependencies found in the csproj file.
 
 ### Compiling
 
