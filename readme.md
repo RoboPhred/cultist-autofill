@@ -4,6 +4,10 @@ This is a mod for Cultist Simulator that adds a hotkey to automatically fill emp
 
 Download the latest release [here](https://github.com/RoboPhred/cultist-autofill/releases/).
 
+# Compatibility
+
+Version 1.0.0 of this mod is compatible with Cultist Simulator version `2022.3.b.1`.
+
 ## Usage
 
 With a situation window open, press `R`. This will cause the mod to look at each empty slot, move in any matching cards it can find. Cards will be searched based on
@@ -68,14 +72,7 @@ try to log errors when it cannot do it's job properly. Create a github issue wit
 ### Dependencies
 
 Project dependencies should be placed in a folder called `externals` in the project's root directory.
-This folder should include:
-
-- BepInEx.dll - Copied from the BepInEx 5.0 installation under `BepInEx/core`
-- Assembly-CSharp.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.CoreModule.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.InputLegacyModule.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.UI.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
-- UnityEngine.dll - Copied from `Cultist Simulator/cultistsimulator_Data/Managed`
+This folder should include all dependencies found in the csproj file.
 
 ### Compiling
 

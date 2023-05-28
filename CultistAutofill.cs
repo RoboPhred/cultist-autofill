@@ -1,170 +1,156 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Core.Entities;
-using Assets.CS.TabletopUI;
-using Assets.TabletopUi;
-using TabletopUi.Scripts.Interfaces;
+using SecretHistories.Entities;
+using SecretHistories.Enums;
+using SecretHistories.Spheres;
+using SecretHistories.Fucine;
+using SecretHistories.UI;
+using SecretHistories.Services;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-namespace CultistAutofill
+public class CultistAutofill : MonoBehaviour, ISettingSubscriber
 {
-    [BepInEx.BepInPlugin("net.robophreddev.CultistSimulator.CultistAutofill", "CultistAutofill", "0.0.3")]
-    public class CultistAutofillMod : BepInEx.BaseUnityPlugin
+    private static readonly string KeySetting = "autofill_trigger";
+
+    private Key binding;
+
+    void Start()
+    {
+        NoonUtility.LogWarning($"Hello World! {this.GetType().Name}");
+        var setting = Watchman.Get<Compendium>().GetEntityById<Setting>(CultistAutofill.KeySetting);
+        setting.AddSubscriber(this);
+    }
+
+    void OnDestroy()
+    {
+        var setting = Watchman.Get<Compendium>().GetEntityById<Setting>(CultistAutofill.KeySetting);
+        setting.RemoveSubscriber(this);
+    }
+
+    public static void Initialise()
+    {
+        try
+        {
+            var component = new GameObject().AddComponent<CultistAutofill>();
+        }
+        catch (Exception e)
+        {
+            NoonUtility.LogException(e);
+        }
+    }
+
+    void Update()
+    {
+        if (Keyboard.current[this.binding].wasPressedThisFrame)
+        {
+            this.AutofillSituation();
+        }
+    }
+
+    void ReadBinding()
+    {
+        var setting = Watchman.Get<Compendium>().GetEntityById<Setting>(CultistAutofill.KeySetting).CurrentValue as string;
+        this.binding = (Key)Enum.Parse(typeof(Key), setting);
+    }
+
+    void ISettingSubscriber.BeforeSettingUpdated(object newValue)
     {
 
-        private TabletopTokenContainer TabletopTokenContainer
-        {
-            get
-            {
-                {
-                    var tabletopManager = (TabletopManager)Registry.Retrieve<ITabletopManager>();
-                    if (tabletopManager == null)
-                    {
-                        this.Logger.LogError("Could not fetch TabletopManager");
-                    }
+    }
 
-                    return tabletopManager._tabletop;
-                }
-            }
+    void ISettingSubscriber.WhenSettingUpdated(object newValue)
+    {
+        var strValue = newValue as string;
+        Watchman.Get<Config>().PersistConfigValue(CultistAutofill.KeySetting, strValue);
+        this.binding = (Key)Enum.Parse(typeof(Key), strValue);
+    }
+
+    void AutofillSituation()
+    {
+        if (Watchman.Get<Numa>().IsOtherworldActive())
+        {
+            return;
         }
 
-        void Start()
+        var situation = this.GetOpenSituation();
+        if (situation == null)
         {
-            this.Logger.LogInfo("CultistAutofill initialized.");
+            return;
         }
 
-        void Update()
+        var candidates = this.GetTokensOrderedByDistance(situation.GetRectTransform().anchoredPosition).ToArray();
+
+        this.TryFillSpheres(() => situation.GetSpheresActiveForCurrentState(), candidates);
+    }
+
+    void TryFillSpheres(Func<IList<Sphere>> slotsResolver, IList<Token> candidates)
+    {
+        // We handle the first slot independently, as chooing a first slot will
+        //  usually determine what other slots are available.
+        var primarySlot = slotsResolver().FirstOrDefault();
+        if (primarySlot == null)
         {
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                this.AutofillSituation();
-            }
+            return;
         }
 
-        void AutofillSituation()
+        if (!this.TrySatisfySphere(primarySlot, candidates))
         {
-            if (TabletopManager.IsInMansus())
-            {
-                return;
-            }
-
-            var situation = this.GetOpenSituation();
-            if (situation == null)
-            {
-                return;
-            }
-
-            // situationToken is typed ISituationAnchor, but its core type is SituationToken which is a DraggableToken
-            var situationDraggable = situation.situationToken as DraggableToken;
-            var candidates = this.GetElementsOrderedByDistance(situationDraggable.RectTransform.anchoredPosition).ToArray();
-
-            var window = situation.situationWindow;
-            switch (situation.SituationClock.State)
-            {
-                case SituationState.Unstarted:
-                    this.TryFillSlots(() => window.GetStartingSlots(), candidates);
-                    break;
-                case SituationState.Ongoing:
-                    this.TryFillSlots(() => window.GetOngoingSlots(), candidates);
-                    break;
-            }
+            return;
         }
 
-        void TryFillSlots(Func<IList<RecipeSlot>> slotsResolver, IList<ElementStackToken> candidates)
+        // Fill the remaining slots.
+        //  We need to re-fetch the slots, as slotting the primary may
+        //  provide us with new slots.
+        var slots = slotsResolver();
+        foreach (var slot in slots.Skip(1))
         {
-            // We handle the first slot independently, as chooing a first slot will
-            //  usually determine what other slots are available.
-            var primarySlot = slotsResolver().FirstOrDefault();
-            if (primarySlot == null)
-            {
-                return;
-            }
-
-            if (!this.TrySatisfySlot(primarySlot, candidates))
-            {
-                return;
-            }
-
-            // Fill the remaining slots.
-            //  We need to re-fetch the slots, as slotting the primary may
-            //  provide us with new slots.
-            var slots = slotsResolver();
-            foreach (var slot in slots.Skip(1))
-            {
-                this.TrySatisfySlot(slot, candidates);
-            }
+            this.TrySatisfySphere(slot, candidates);
         }
+    }
 
-        bool TrySatisfySlot(RecipeSlot slot, IEnumerable<ElementStackToken> candidates)
+    bool TrySatisfySphere(Sphere sphere, IEnumerable<Token> candidates)
+    {
+        if (sphere.GetElementStacks().Count > 0)
         {
-            if (slot.GetElementStackInSlot() != null)
-            {
-                // Already something in the slot.
-                return true;
-            }
-
-            var candidate = candidates.FirstOrDefault(x => slot.GetSlotMatchForStack(x).MatchType == SlotMatchForAspectsType.Okay);
-            if (candidate == null)
-            {
-                return false;
-            }
-
-            this.PopulateSlot(slot, candidate);
+            // Already something in the sphere.
             return true;
         }
 
-        void PopulateSlot(IRecipeSlot slot, ElementStackToken stack)
+        foreach (var token in candidates)
         {
-            stack.lastTablePos = new Vector2?(stack.RectTransform.anchoredPosition);
-            if (stack.Quantity != 1)
+            // TryAcceptToken handles UI concerns like messages and sound effects, so we need to check manually
+            // to avoid spamming sound effects.
+            if (sphere.GetMatchForTokenPayload(token.Payload).MatchType == SlotMatchForAspectsType.Okay)
             {
-                var newStack = stack.SplitAllButNCardsToNewStack(stack.Quantity - 1, new Context(Context.ActionSource.PlayerDrag));
-                slot.AcceptStack(newStack, new Context(Context.ActionSource.PlayerDrag));
-            }
-            else
-            {
-                slot.AcceptStack(stack, new Context(Context.ActionSource.PlayerDrag));
+                // We sitll need to TryAcceptToken, as that contains the logic to split the stack into one card.
+                sphere.TryAcceptToken(token, new Context(Context.ActionSource.PlayerDrag));
+                return true;
             }
         }
 
-        IEnumerable<ElementStackToken> GetElementsOrderedByDistance(Vector2 fromPoint)
-        {
-            var elements =
-                from token in this.TabletopTokenContainer.GetTokens()
-                let stack = token as ElementStackToken
-                where stack != null
-                orderby CalcDistance(stack.RectTransform.anchoredPosition, fromPoint)
-                select stack;
-            return elements;
-        }
+        return false;
+    }
 
-        float CalcDistance(Vector2 a, Vector2 b)
-        {
-            var xDist = a.x - b.x;
-            var yDist = a.y - b.y;
-            return (float)Math.Sqrt(xDist * xDist + yDist * yDist);
-        }
+    IEnumerable<Token> GetTokensOrderedByDistance(Vector2 fromPoint)
+    {
+        return from sphere in Watchman.Get<HornedAxe>().GetSpheres()
+               where sphere.SphereCategory == SphereCategory.World
+               from stack in sphere.GetElementStacks()
+               orderby CalcDistance(stack.GetRectTransform().anchoredPosition, fromPoint)
+               select stack.Token;
+    }
 
-        RecipeSlot ValidRecipeSlotOrNull(RecipeSlot slot)
-        {
-            if (slot.Defunct || slot.IsGreedy || slot.IsBeingAnimated)
-            {
-                return null;
-            }
-            return slot;
-        }
+    float CalcDistance(Vector2 a, Vector2 b)
+    {
+        var xDist = a.x - b.x;
+        var yDist = a.y - b.y;
+        return (float)Math.Sqrt((xDist * xDist) + (yDist * yDist));
+    }
 
-        SituationController GetOpenSituation()
-        {
-            var situation = Registry.Retrieve<SituationsCatalogue>().GetOpenSituation();
-            var token = situation.situationToken as SituationToken;
-            if (token.Defunct || token.IsBeingAnimated)
-            {
-                return null;
-            }
-
-            return situation;
-        }
+    Situation GetOpenSituation()
+    {
+        return Watchman.Get<HornedAxe>().GetRegisteredSituations().Find(x => x.IsOpen);
     }
 }
