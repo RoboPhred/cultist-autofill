@@ -1,0 +1,11 @@
+{
+  "settings": [
+    {
+      "id": "autofill_trigger",
+      "tabid": "UI_KEYBINDS",
+      "hint": "UI_KB_AUTOFILL_TRIGGER",
+      "datatype": "String",
+      "defaultvalue": "<Keyboard>/R"
+    }
+  ]
+}

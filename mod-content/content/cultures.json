@@ -1,0 +1,10 @@
+{
+    "cultures": [
+        {
+            "id": "en",
+            "uilabels$add": {
+                "UI_KB_AUTOFILL_TRIGGER": "Verb AutoFill"
+            }
+        }
+    ]
+}

@@ -21,6 +21,7 @@ public class CultistAutofill : MonoBehaviour, ISettingSubscriber
         NoonUtility.LogWarning($"Hello World! {this.GetType().Name}");
         var setting = Watchman.Get<Compendium>().GetEntityById<Setting>(CultistAutofill.KeySetting);
         setting.AddSubscriber(this);
+        this.ReadBinding();
     }
 
     void OnDestroy()
@@ -45,14 +46,27 @@ public class CultistAutofill : MonoBehaviour, ISettingSubscriber
     {
         if (Keyboard.current[this.binding].wasPressedThisFrame)
         {
+            NoonUtility.LogWarning($"{this.GetType().Name} Hotkey");
             this.AutofillSituation();
         }
     }
 
     void ReadBinding()
     {
+        NoonUtility.LogWarning($"{this.GetType().Name} Reading binding");
         var setting = Watchman.Get<Compendium>().GetEntityById<Setting>(CultistAutofill.KeySetting).CurrentValue as string;
-        this.binding = (Key)Enum.Parse(typeof(Key), setting);
+        NoonUtility.LogWarning($"{this.GetType().Name} AutoFill setting is {setting}");
+        var keyStr = setting.Split('/')[1];
+        try
+        {
+            this.binding = (Key)Enum.Parse(typeof(Key), keyStr);
+            NoonUtility.LogWarning($"{this.GetType().Name} AutoFill bound successfully");
+        }
+        catch (Exception e)
+        {
+            NoonUtility.LogException(e);
+            this.binding = Key.None;
+        }
     }
 
     void ISettingSubscriber.BeforeSettingUpdated(object newValue)
